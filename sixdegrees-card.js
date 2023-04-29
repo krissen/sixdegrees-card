@@ -30,7 +30,7 @@ import {
 
         const name = entity.attributes.friendly_name;
         if ( this.config.name == null || this.config.name == true) {
-            sensor.name = this.config.name.charAt(0).toUpperCase() + this.config.name.slice(1);
+            sensor.name = name.charAt(0).toUpperCase() + name.slice(1);
         } else if (this.config.name.length > 0){
             sensor.name = this.config.name;
         }
@@ -119,30 +119,12 @@ import {
           color: var(--primary-text-color);
           padding: 4px 0 12px;
         }
-        .forecast {
-          width: 100%;
-          padding: 7px;
-          height: 100%;
-        }
-        td {
-          padding: 1px;
-          text-align: center;
-          width: 100px;
-          font-size: smaller;
-        }
-        img.allergen {
-          width: 40px;
-          height: 40px;
-        }
         img {
           width: 50px;
           height: 50px;
         }
         p {
           margin-top: 1px;
-        }
-        td {
-          width: 100px;
         }
          .flex-container {
           padding: 16px;
@@ -163,9 +145,6 @@ import {
           display: block;
           min-width: 20%;
           flex: 1;
-        }
-        p.nowrap {
-       white-space: nowrap;
         }
       `;
     }
