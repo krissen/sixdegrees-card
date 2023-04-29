@@ -16,22 +16,40 @@ import {
         this._hass = hass;
         const entity = hass.states[this.config.entity];
         var sensor = {};
-        sensor.min = this.config.min;
-        sensor.max = this.config.max;
-        sensor.mintomax = sensor.max - sensor.min;
-        sensor.name = entity.attributes.friendly_name;
-        // sensor.state = entity.state;
-        sensor.state = 1;
-        sensor.degree_one = 6 / sensor.mintomax;
-        sensor.degrees = Math.round(sensor.state * sensor.degree_one);
-        this.sensor = sensor;
+        const min = this.config.min;
+        const max = this.config.max;
+        let mintomax = max - min;
+        sensor.state = entity.state;
+        let degree_one = 6 / mintomax;
+        sensor.degrees = Math.round(sensor.state * degree_one);
+
+        if (sensor.degrees > 6) {
+            throw new Error('Degrees must be between 0 and 6. Check that the min and max values you have set matches what is possible for the given entity.');
+        }
+
+
+        const name = entity.attributes.friendly_name;
+        if ( this.config.name == null || this.config.name == true) {
+            sensor.name = this.config.name.charAt(0).toUpperCase() + this.config.name.slice(1);
+        } else if (this.config.name.length > 0){
+            sensor.name = this.config.name;
+        }
+
+        if ( this.config.show_value == true ) {
+            if ( sensor.name.length > 0 ) {
+                sensor.name = sensor.name + ' (' + sensor.state + ')';
+            } else {
+                sensor.name = sensor.state
+            }
+        }
   
-      if (this.config.title == null || this.config.title == true) {
-          this.header = `Pollenprognos ${this.config.entity.charAt(0).toUpperCase() + this.config.entity.slice(1)}`;
-      } else if (this.config.title.length > 0){
-          this.header = this.config.title;
-      }
-      
+        if (this.config.title == null || this.config.title == true) {
+            this.header = `Status för ${sensor.name.charAt(0).toUpperCase() + sensor.name.slice(1)}`;
+        } else if (this.config.title.length > 0){
+            this.header = this.config.title;
+        }
+
+        this.sensor = sensor;
   
     }
 
@@ -43,13 +61,10 @@ import {
               <p></p>
               ` : ''}
               <div class="flex-container">
-              <p>${this.sensor.name}</p>
-              <p>${this.sensor.state}</p><br />
-              <p>${this.sensor.mintomax}</p>
-              <p>${this.sensor.degree_one}</p>
-              </div>
-              <div class="flex-container">
-              <p>${this.sensor.degrees}</p>
+                  <div class="sensor">
+                  <img class="box" src="${this.images[this.sensor.degrees+'_png']}" />
+                      <p>${this.sensor.name}</p>
+                  </div>
               </div>
           </ha-card>
       `;
@@ -67,6 +82,13 @@ import {
       if (!config.entity) {
           throw new Error('You need to specify an entity');
         }
+        // if (!config.min) {
+        //     throw new Error('You need to specify a min value');
+        // }
+        // if (!config.max) {
+        //     throw new Error('You need to specify a max value');
+        // }
+
         this.config = config;
   
         //Save images
