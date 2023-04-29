@@ -16,9 +16,14 @@ import {
         this._hass = hass;
         const entity = hass.states[this.config.entity];
         var sensor = {};
+        sensor.min = this.config.min;
         sensor.max = this.config.max;
+        sensor.mintomax = sensor.max - sensor.min;
         sensor.name = entity.attributes.friendly_name;
-        sensor.state = entity.state;
+        // sensor.state = entity.state;
+        sensor.state = 1;
+        sensor.degree_one = 6 / sensor.mintomax;
+        sensor.degrees = Math.round(sensor.state * sensor.degree_one);
         this.sensor = sensor;
   
       if (this.config.title == null || this.config.title == true) {
@@ -39,7 +44,12 @@ import {
               ` : ''}
               <div class="flex-container">
               <p>${this.sensor.name}</p>
-              <p>${this.sensor.state}</p>
+              <p>${this.sensor.state}</p><br />
+              <p>${this.sensor.mintomax}</p>
+              <p>${this.sensor.degree_one}</p>
+              </div>
+              <div class="flex-container">
+              <p>${this.sensor.degrees}</p>
               </div>
           </ha-card>
       `;
