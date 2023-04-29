@@ -31,6 +31,8 @@ import {
         const name = entity.attributes.friendly_name;
         if ( this.config.name == null || this.config.name == true) {
             sensor.name = name.charAt(0).toUpperCase() + name.slice(1);
+        } else if (this.config.name == false) {
+            sensor.name = '';
         } else if (this.config.name.length > 0){
             sensor.name = this.config.name;
         }
@@ -44,7 +46,7 @@ import {
         }
   
         if (this.config.title == null || this.config.title == true) {
-            this.header = `Status för ${sensor.name.charAt(0).toUpperCase() + sensor.name.slice(1)}`;
+            this.header = `Status för ${name.charAt(0).toUpperCase() + name.slice(1)}`;
         } else if (this.config.title.length > 0){
             this.header = this.config.title;
         }
