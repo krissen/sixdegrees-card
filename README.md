@@ -143,3 +143,7 @@ See more info: https://hacs.xyz/docs/faq/custom_repositories
 </td>
 </tr>
 </table>
+
+## Credits
+
+Using gauges from [pollen-card](https://github.com/nidayand/lovelace-pollen-card) by @nidayand , who in turn rewrote @isabellaalstrom's [pollenprognos-card](https://github.com/isabellaalstrom/lovelace-pollenprognos-card).
