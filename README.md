@@ -22,10 +22,11 @@ See more info: <https://hacs.xyz/docs/faq/custom_repositories>
 | **title**       | string \| boolean    | `true`                                                    | Header title. Use a string to hard-code, `true` to auto-generate from entity’s friendly name, or `false` to hide.     |
 | **name**        | string \| boolean    | `true`                                                    | Label below the graphic. Use a string to hard-code, `true` to use entity’s friendly name, or `false` to hide.         |
 | **show_value**  | boolean              | `false`                                                   | When `true`, appends the raw sensor value to the `name`.                                                               |
-| **colors**      | string[]             | `["#ffeb3b","#ffc107","#ff9800","#ff5722","#e64a19","#d32f2f"]` | Array of 6 CSS colors for the filled segments, in order from segment 1 to 6.                                            |
-| **empty_color** | string               | `"var(--card-background-color)"`                                           | CSS color for the unfilled segments. Can also be a CSS variable (e.g. `var(--primary-background-color)`).             |
-| **gap**         | integer              | `5`                                                       | Border width (in pixels) between segments. Increase for a more pronounced gap.                                         |
 | **thickness** | integer | 60 | Thickness of the segments, where 20 would be very thin and 90 rather pie-like.
+| **colors**      | string[]             | `["#ffeb3b","#ffc107","#ff9800","#ff5722","#e64a19","#d32f2f"]` | Array of 6 CSS colors for the filled segments, in order from segment 1 to 6.                                            |
+| **empty_color** | string | "`var(--divider-color)"` | CSS color for an unfilled segment. Can also be a CSS variable (e.g. `var(--primary-background-color)`). |
+| **gap**         | integer              | `5`                                                       | Border width (in pixels) between segments. Increase for a more pronounced gap.                                         |
+| **gap_color** | string               | `"var(--card-background-color)"`                                           | CSS color for the unfilled segments. Can also be a CSS variable (e.g. `var(--primary-background-color)`).             |
 
 ## Examples
 
@@ -35,7 +36,7 @@ See more info: <https://hacs.xyz/docs/faq/custom_repositories>
   <td><img width="149" alt="Custom colors" src="https://github.com/user-attachments/assets/655f66f9-a6f3-44a2-a6cf-48aed45a7fe9" />
 </td>
   <td>
-   
+
    ```yaml
    type: custom:sixdegrees-card
 entity: sensor.0000021c6bae3410_update_count
@@ -54,6 +55,7 @@ colors:
   - "#000000"  # Black
   - "#FF0000"  # Red
 ```
+
   </td>
  </tr>
 <tr>

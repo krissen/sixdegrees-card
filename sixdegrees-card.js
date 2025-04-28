@@ -42,7 +42,8 @@ class SixDegrees extends LitElement {
           "#e64a19",
           "#d32f2f",
         ],
-      empty_color: config.empty_color ?? "var(--card-background-color)",
+      gap_color: config.gap_color ?? "var(--card-background-color)",
+      empty_color: config.empty_color ?? "var(--divider-color)",
       gap: config.gap ?? 5,
       thickness: config.thickness ?? 60,
     };
@@ -83,42 +84,48 @@ class SixDegrees extends LitElement {
       title: titleText,
     };
 
-    // Uppdatera diagrammet
     this._updateChart();
   }
 
   firstUpdated() {
-    // --- NYTT: hämta ut tema-bakgrund om det är en var(...)
-    let empty = this.config.empty_color;
-    if (empty.startsWith("var(")) {
-      const prop = empty.match(/var\((--[^)]+)\)/)[1];
+    // --- Hämta ut verklig gap-färg
+    let gapCol = this.config.gap_color;
+    if (gapCol.startsWith("var(")) {
+      const prop = gapCol.match(/var\((--[^)]+)\)/)[1];
       const val = getComputedStyle(this).getPropertyValue(prop).trim();
-      if (val) empty = val;
+      if (val) gapCol = val;
     }
-    this._emptyColor = empty;
+    this._gapColor = gapCol;
 
-    // Hämta canvas-context
+    // --- Hämta ut verklig empty-segment-färg
+    let segCol = this.config.empty_color;
+    if (segCol.startsWith("var(")) {
+      const prop = segCol.match(/var\((--[^)]+)\)/)[1];
+      const val = getComputedStyle(this).getPropertyValue(prop).trim();
+      if (val) segCol = val;
+    }
+    this._emptySegmentColor = segCol;
+
+    // Skapa chart
     const ctx = this.renderRoot.querySelector("canvas").getContext("2d");
-
-    // Initiera Chart.js
     this._chart = new Chart(ctx, {
       type: "doughnut",
       data: {
         labels: Array(6).fill(""),
         datasets: [{
           data: Array(6).fill(1),
-          backgroundColor: Array(6).fill(this._emptyColor),
-          borderColor: Array(6).fill(this._emptyColor),
-          borderWidth: this.config.gap,
+          backgroundColor: Array(6).fill(this._emptySegmentColor),
+          borderColor:     Array(6).fill(this._gapColor),
+          borderWidth:     this.config.gap,
         }],
       },
       options: {
-        rotation: -Math.PI / 2,        // Startpunkt = toppen
-        cutout: `${100 - this.config.thickness}%`,
+        rotation: -Math.PI / 2,                      // skarv uppåt
+        cutout:   `${100 - this.config.thickness}%`, // tjocklek
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { display: false },
+          legend:  { display: false },
           tooltip: { enabled: false },
         },
       },
@@ -130,18 +137,20 @@ class SixDegrees extends LitElement {
   _updateChart() {
     if (!this._chart) return;
     const bg = [];
+    const bc = [];
     for (let i = 0; i < 6; i++) {
-      bg.push(
-        i < this.sensor.degrees
-          ? this.config.colors[i]
-          : this._emptyColor
+      // ifyllt vs ofyllt
+      bg.push(i < this.sensor.degrees
+        ? this.config.colors[i]
+        : this._emptySegmentColor
       );
+      // gap alltid gap-färg
+      bc.push(this._gapColor);
     }
     this._chart.data.datasets[0].backgroundColor = bg;
-    this._chart.data.datasets[0].borderColor     = Array(6).fill(this._emptyColor);
+    this._chart.data.datasets[0].borderColor     = bc;
     this._chart.data.datasets[0].borderWidth     = this.config.gap;
-    // Säkerställ rotation så skarven alltid är uppåt
-    this._chart.options.rotation = -Math.PI / 2;
+    this._chart.options.rotation = -Math.PI / 2; // återställ skarv-rotation
     this._chart.update();
   }
 
@@ -151,9 +160,7 @@ class SixDegrees extends LitElement {
         ${this.sensor.title
           ? html`<div class="card-header">${this.sensor.title}</div>`
           : ""}
-        <div class="chart-wrapper">
-          <canvas></canvas>
-        </div>
+        <div class="chart-wrapper"><canvas></canvas></div>
         ${this.sensor.name
           ? html`<div class="sensor-label">${this.sensor.name}</div>`
           : ""}
@@ -163,12 +170,8 @@ class SixDegrees extends LitElement {
 
   static get styles() {
     return css`
-      :host {
-        display: block;
-      }
-      ha-card {
-        padding: 16px;
-      }
+      :host { display: block; }
+      ha-card { padding: 16px; }
       .card-header {
         margin: 0 0 4px 0;
         font-size: var(--paper-font-headline_-_font-size);
