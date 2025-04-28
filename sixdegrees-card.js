@@ -44,6 +44,7 @@ class SixDegrees extends LitElement {
         ],
       empty_color: config.empty_color ?? "var(--card-background-color)",
       gap: config.gap ?? 5,
+      thickness: config.thickness ?? 60,
     };
   }
 
@@ -113,7 +114,7 @@ class SixDegrees extends LitElement {
       },
       options: {
         rotation: -Math.PI / 2,        // Startpunkt = toppen
-        cutout: "60%",
+        cutout: `${100 - this.config.thickness}%`,
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
@@ -176,7 +177,7 @@ class SixDegrees extends LitElement {
       .chart-wrapper {
         position: relative;
         width: 100%;
-        height: 80px;
+        height: 100px;
         display: flex;
         justify-content: center;
         align-items: center;
