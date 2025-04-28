@@ -30,6 +30,32 @@ See more info: <https://hacs.xyz/docs/faq/custom_repositories>
 ## Examples
 
 <table>
+ <tr>
+  <td>Custom colors</td>
+  <td><img width="149" alt="Custom colors" src="https://github.com/user-attachments/assets/655f66f9-a6f3-44a2-a6cf-48aed45a7fe9" />
+</td>
+  <td>
+   
+   ```yaml
+   type: custom:sixdegrees-card
+entity: sensor.0000021c6bae3410_update_count
+min: 0
+max: 1800
+show_value: true
+title: false
+name: false
+gap: 5
+thickness: 90
+colors:
+  - "#800080"  # Purple
+  - "#00FF00"  # Green
+  - "#A52A2A"  # Brown
+  - "#FFFFFF"  # White
+  - "#000000"  # Black
+  - "#FF0000"  # Red
+```
+  </td>
+ </tr>
 <tr>
 <td>Title, value, no name</td>
 <td><img width="358" alt="title_value_noname" src="https://user-images.githubusercontent.com/2943684/235320322-3ffce258-437e-47a0-af76-9ec99fe82d21.png"></td>
