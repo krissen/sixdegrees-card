@@ -13,19 +13,18 @@ See more info: <https://hacs.xyz/docs/faq/custom_repositories>
 
 ## Options
 
-| Name            | Type              | Default                                                   | Description                                                                                                            |
-| --------------- | ----------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
-| **type**        | string            | **Required**                                              | Must be `custom:sixdegrees-card`.                                                                                      |
-| **entity**      | string            | **Required**                                              | The sensor entity to display (e.g. `sensor.pollen_level`).                                                             |
-| **min**         | integer           | **Required**                                              | Minimum sensor value for the 6-segment scale.                                                                          |
-| **max**         | integer           | **Required**                                              | Maximum sensor value for the 6-segment scale.                                                                          |
-| **title**       | string \| boolean | `true`                                                    | Header title. Use a string to hard-code, `true` to auto-generate from entity’s friendly name, or `false` to hide.     |
-| **name**        | string \| boolean | `true`                                                    | Label below the graphic. Use a string to hard-code, `true` to use entity’s friendly name, or `false` to hide.         |
-| **show_value**  | boolean           | `false`                                                   | When `true`, appends the raw sensor value to the `name`.                                                               |
-| **colors**      | string[]          | `['#ffffb2','#fed976','#feb24c','#fd8d3c','#f03b20','#bd0026']` | **Optional.** Array of exactly 6 hex codes, one per segment (segment 1 → `colors[0]`, …, segment 6 → `colors[5]`).      |
-| **filled_color**| string            | _none_                                                    | **Optional.** Single hex code to fill all active segments if `colors` is _not_ provided.                              |
-| **empty_color** | string            | `transparent`                                             | **Optional.** Colour for inactive (empty) segments.                                                                    |
-| **border_color**| string            | `var(--divider-color, #ddd)`                             | **Optional.** Colour (or CSS variable) for each segment’s border.                                                      |
+| Name            | Type                 | Default                                                   | Description                                                                                                            |
+| --------------- | -------------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **type**        | string               | **Required**                                              | Must be `custom:sixdegrees-card`.                                                                                      |
+| **entity**      | string               | **Required**                                              | The sensor entity to display (e.g. `sensor.pollen_level`).                                                             |
+| **min**         | integer              | **Required**                                              | Minimum sensor value for the 6-segment scale.                                                                          |
+| **max**         | integer              | **Required**                                              | Maximum sensor value for the 6-segment scale.                                                                          |
+| **title**       | string \| boolean    | `true`                                                    | Header title. Use a string to hard-code, `true` to auto-generate from entity’s friendly name, or `false` to hide.     |
+| **name**        | string \| boolean    | `true`                                                    | Label below the graphic. Use a string to hard-code, `true` to use entity’s friendly name, or `false` to hide.         |
+| **show_value**  | boolean              | `false`                                                   | When `true`, appends the raw sensor value to the `name`.                                                               |
+| **colors**      | string[]             | `["#ffeb3b","#ffc107","#ff9800","#ff5722","#e64a19","#d32f2f"]` | Array of 6 CSS colors for the filled segments, in order from segment 1 to 6.                                            |
+| **empty_color** | string               | `"var(--card-background-color)"`                                           | CSS color for the unfilled segments. Can also be a CSS variable (e.g. `var(--primary-background-color)`).             |
+| **gap**         | integer              | `5`                                                       | Border width (in pixels) between segments. Increase for a more pronounced gap.                                         |
 
 ## Examples
 
