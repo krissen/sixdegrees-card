@@ -188,5 +188,5 @@ class SixDegrees extends LitElement {
   }
 }
 
-customElements.define('six-degrees-card', SixDegrees);
+customElements.define('sixdegrees-card', SixDegrees);
 
