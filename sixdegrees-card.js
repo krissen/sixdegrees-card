@@ -78,6 +78,7 @@ class SixDegrees extends LitElement {
   }
 
   setConfig(config) {
+    console.log('sixdegrees CONFIG.colors 👉', config.colors);
     if (!config.entity) {
       throw new Error('You need to specify an entity');
     }
