@@ -1,26 +1,31 @@
 # sixdegrees-card
+
 Lovelace card, like a gauge but only in six degrees. As seen in [pollenprognos-card](https://github.com/krissen/pollenprognos-card/).
 
 <img width="356" alt="notitle_value_name" src="https://user-images.githubusercontent.com/2943684/235319743-46b39731-06b7-4f53-8879-b7f1d10e5a6f.png">
 
 ## Install with HACS
 
-Add https://github.com/krissen/sixdegrees-card/ as a custom integration.
-See more info: https://hacs.xyz/docs/faq/custom_repositories
+Add <https://github.com/krissen/sixdegrees-card/> as a custom integration.
+See more info: <https://hacs.xyz/docs/faq/custom_repositories>
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)  
 
 ## Options
 
-| Name | Type | Default | Description
-| ---- | ---- | ------- | -----------
-| type | string | **Required** | `custom:sixdegrees-card`
-| entity | string | **Required** | Entity (sensor) to show
-| min | integer | **Required** | Minimal value of entity (sensor). Used to calculate degrees.
-| max | integer | **Required** | Maximum value of entity (sensor).  Used to calculate degrees.
-| title | string | **Optional** | Custom title if string, boolean value if generated or not to show. Default is generated text based of entity's friendly name.
-| name | string | **Optional** |  Custom name below image if string, boolean value if generated or not to show. Default is entity's friendly name.
-| show_value | boolean | **Optional** | If value of sensor is to be shown below image.
+| Name            | Type              | Default                                                   | Description                                                                                                            |
+| --------------- | ----------------- | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| **type**        | string            | **Required**                                              | Must be `custom:sixdegrees-card`.                                                                                      |
+| **entity**      | string            | **Required**                                              | The sensor entity to display (e.g. `sensor.pollen_level`).                                                             |
+| **min**         | integer           | **Required**                                              | Minimum sensor value for the 6-segment scale.                                                                          |
+| **max**         | integer           | **Required**                                              | Maximum sensor value for the 6-segment scale.                                                                          |
+| **title**       | string \| boolean | `true`                                                    | Header title. Use a string to hard-code, `true` to auto-generate from entity’s friendly name, or `false` to hide.     |
+| **name**        | string \| boolean | `true`                                                    | Label below the graphic. Use a string to hard-code, `true` to use entity’s friendly name, or `false` to hide.         |
+| **show_value**  | boolean           | `false`                                                   | When `true`, appends the raw sensor value to the `name`.                                                               |
+| **colors**      | string[]          | `['#ffffb2','#fed976','#feb24c','#fd8d3c','#f03b20','#bd0026']` | **Optional.** Array of exactly 6 hex codes, one per segment (segment 1 → `colors[0]`, …, segment 6 → `colors[5]`).      |
+| **filled_color**| string            | _none_                                                    | **Optional.** Single hex code to fill all active segments if `colors` is _not_ provided.                              |
+| **empty_color** | string            | `transparent`                                             | **Optional.** Colour for inactive (empty) segments.                                                                    |
+| **border_color**| string            | `var(--divider-color, #ddd)`                             | **Optional.** Colour (or CSS variable) for each segment’s border.                                                      |
 
 ## Examples
 
@@ -39,6 +44,7 @@ See more info: https://hacs.xyz/docs/faq/custom_repositories
     min: 0
     max: 60
 ```
+
 </td>
 </tr>
 <tr>
@@ -55,6 +61,7 @@ See more info: https://hacs.xyz/docs/faq/custom_repositories
     min: 0
     max: 60
 ```
+
 </td></tr>
 <tr>
 <td>Mixed with/without title, value, and name. Using `horizontal-stack` and `vertical-stack` (light)</td>
@@ -140,6 +147,7 @@ See more info: https://hacs.xyz/docs/faq/custom_repositories
             min: 0
             max: 7
 ```
+
 </td>
 </tr>
 </table>
