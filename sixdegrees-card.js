@@ -12,48 +12,38 @@ import {
       };
     }
   
-    set hass(hass) {
-        this._hass = hass;
-        const entity = hass.states[this.config.entity];
-        var sensor = {};
-        const min = this.config.min;
-        const max = this.config.max;
-        let mintomax = max - min;
-        sensor.state = entity.state;
-        let degree_one = 6 / mintomax;
-        sensor.degrees = Math.round(sensor.state * degree_one);
+      set hass(hass) {
+          this._hass = hass;
+          const entity = hass.states[this.config.entity];
+          const raw = Number(entity.state);
 
-        if (sensor.degrees > 6) {
-            throw new Error('Degrees must be between 0 and 6. Check that the min and max values you have set matches what is possible for the given entity.');
-        }
+          const min = this.config.min ?? 0;
+          const max = this.config.max ?? raw;
+          if (max <= min) {
+              throw new Error(`Invalid configuration: max (${max}) must be > min (${min}).`);
+          }
 
+          // clamp into [min…max]
+          const clamped = Math.min(Math.max(raw, min), max);
 
-        const name = entity.attributes.friendly_name;
-        if ( this.config.name == null || this.config.name == true) {
-            sensor.name = name.charAt(0).toUpperCase() + name.slice(1);
-        } else if (this.config.name == false) {
-            sensor.name = '';
-        } else if (this.config.name.length > 0){
-            sensor.name = this.config.name;
-        }
+          // compute degree 0–6
+          const span = max - min;
+          const ratio = (clamped - min) / span;
+          let degrees = Math.round(ratio * 6);
 
-        if ( this.config.show_value == true ) {
-            if ( sensor.name.length > 0 ) {
-                sensor.name = sensor.name + ' (' + sensor.state + ')';
-            } else {
-                sensor.name = sensor.state
-            }
-        }
-  
-        if (this.config.title == null || this.config.title == true) {
-            this.header = `Status för ${name.charAt(0).toUpperCase() + name.slice(1)}`;
-        } else if (this.config.title.length > 0){
-            this.header = this.config.title;
-        }
+          // just in case rounding pushes us out of bounds
+          degrees = Math.min(6, Math.max(0, degrees));
 
-        this.sensor = sensor;
-  
-    }
+          // now assign back to your sensor object
+          const sensor = {
+              state: raw,         // keep the raw value for display
+              degrees,            // 0…6 after clamping & offset
+              // …then carry on with your name, header, etc.
+          };
+
+          this.sensor = sensor;
+      }
+
 
     _renderMinimalHtml() {
           return html`
