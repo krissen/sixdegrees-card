@@ -25,34 +25,26 @@ class SixDegrees extends LitElement {
 
     // --- Visual Editor support ---
     // Return the custom editor element for the visual editor
-/**
- * Return the custom editor element for the visual editor.
- * Ser till att ha-entity-picker laddas in via ett dummy "entities"-kort,
- * sedan returnerar vår editor.
- */
-static async getConfigElement() {
-  // 1) Ladda in Lovelace-helpers
-  const helpers = await window.loadCardHelpers();
+    static async getConfigElement() {
+        // 1) Ladda in Lovelace-helpers
+        const helpers = await window.loadCardHelpers();
 
-  // 2) Skapa ett dummy-entities-kort för att få med ha-entity-picker
-  const entCard = await helpers.createCardElement({
-    type: 'entities',
-    entities: []
-  });
-  await entCard.constructor.getConfigElement();
+        // 2) Skapa ett dummy-entities-kort för att få med ha-entity-picker
+        const entCard = await helpers.createCardElement({
+            type: 'entities',
+            entities: []
+        });
+        await entCard.constructor.getConfigElement();
 
-  // 3) Dynamiskt importera de komponenter som behövs för färgplockare och ikon-knapp
-  // if (!customElements.get('ha-color-picker')) {
-  //   await import('/frontend_latest/components/ha-color-picker.js?module');
-  // }
-  if (!customElements.get('ha-icon-button')) {
-    await import('/frontend_latest/components/ha-icon-button.js?module');
-  }
+        // if (!customElements.get('mwc-icon-button')) {
+        //   // Här är den korrekta sökvägen i Home Assistant
+        //   await import('/frontend_latest/@material/mwc-icon-button.js?module');
+        // }
 
-  // 4) Vänta på och returnera vår egen editor
-  await customElements.whenDefined('sixdegrees-card-editor');
-  return document.createElement('sixdegrees-card-editor');
-}
+        // 4) Vänta på och returnera vår egen editor
+        await customElements.whenDefined('sixdegrees-card-editor');
+        return document.createElement('sixdegrees-card-editor');
+    }
 
 
     // Provide a stub/default configuration for the editor
@@ -83,7 +75,7 @@ static async getConfigElement() {
             ],
             empty_color: "var(--divider-color)",
             gap_color:   "var(--card-background-color)",
-            
+
             // Diameter i pixlar
             size:        100
         };
@@ -179,47 +171,46 @@ static async getConfigElement() {
         let gapCol = this.config.gap_color;
         if (gapCol.startsWith("var(")) {
             const prop = gapCol.match(/var\((--[^)]+)\)/)[1];
-const val = getComputedStyle(this).getPropertyValue(prop).trim();
-if (val) gapCol = val;
-}
-this._gapColor = gapCol;
+            const val = getComputedStyle(this).getPropertyValue(prop).trim();
+            if (val) gapCol = val;
+        }
+        this._gapColor = gapCol;
 
-// --- Hämta ut verklig empty-segment-färg
-let segCol = this.config.empty_color;
-if (segCol.startsWith("var(")) {
-    const prop = segCol.match(/var\((--[^)]+)\)/)[1];
-const val = getComputedStyle(this).getPropertyValue(prop).trim();
-if (val) segCol = val;
-}
-this._emptySegmentColor = segCol;
+        // --- Hämta ut verklig empty-segment-färg
+        let segCol = this.config.empty_color;
+        if (segCol.startsWith("var(")) {
+            const prop = segCol.match(/var\((--[^)]+)\)/)[1];
+        const val = getComputedStyle(this).getPropertyValue(prop).trim();
+        if (val) segCol = val;
+        }
+        this._emptySegmentColor = segCol;
 
-// Skapa chart
-const ctx = this.renderRoot.querySelector("canvas").getContext("2d");
-this._chart = new Chart(ctx, {
-    type: "doughnut",
-    data: {
-        labels: Array(6).fill(""),
-        datasets: [{
-            data: Array(6).fill(1),
-            backgroundColor: Array(6).fill(this._emptySegmentColor),
-            borderColor:     Array(6).fill(this._gapColor),
-            borderWidth:     this.config.gap,
-        }],
-    },
-    options: {
-        rotation: -Math.PI / 2,                      // skarv uppåt
-        cutout:   `${100 - this.config.thickness}%`, // tjocklek
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend:  { display: false },
-            tooltip: { enabled: false },
-        },
-    },
-});
-
-this._updateChart();
-}
+        // Skapa chart
+        const ctx = this.renderRoot.querySelector("canvas").getContext("2d");
+        this._chart = new Chart(ctx, {
+            type: "doughnut",
+            data: {
+                labels: Array(6).fill(""),
+                datasets: [{
+                    data: Array(6).fill(1),
+                    backgroundColor: Array(6).fill(this._emptySegmentColor),
+                    borderColor:     Array(6).fill(this._gapColor),
+                    borderWidth:     this.config.gap,
+                }],
+            },
+            options: {
+                rotation: -Math.PI / 2,                      // skarv uppåt
+                cutout:   `${100 - this.config.thickness}%`, // tjocklek
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend:  { display: false },
+                    tooltip: { enabled: false },
+                },
+            },
+        });
+        this._updateChart();
+        }
 
 _updateChart() {
     if (!this._chart) return;
@@ -243,47 +234,43 @@ _updateChart() {
 
 render() {
     return html`
-      <ha-card>
-        ${this.sensor.title
-                ? html`<div class="card-header">${this.sensor.title}</div>`
-                : ""}
-        <div
-          class="chart-wrapper"
-          style="width:${this.config.size}px; height:${this.config.size}px;"
-        >
-          <canvas></canvas>
-        </div>
-        ${this.sensor.name
-                ? html`<div class="sensor-label">${this.sensor.name}</div>`
-                : ""}
-      </ha-card>
-    `;
+    <ha-card
+      .header=${this.sensor.title || ''}
+    >
+      <div
+        class="chart-wrapper"
+        style="width:${this.config.size}px; height:${this.config.size}px;"
+      >
+        <canvas></canvas>
+      </div>
+      ${this.sensor.name
+              ? html`<div class="sensor-label">${this.sensor.name}</div>`
+              : ""}
+    </ha-card>
+  `;
 }
+
 
 static get styles() {
     return css`
-      :host { display: block; }
-      ha-card { padding: 16px; }
-      .card-header {
-        margin: 0 0 4px 0;
-        font-size: var(--paper-font-headline_-_font-size);
-        color: var(--primary-text-color);
-      }
-      .chart-wrapper {
+    :host { display: block; }
+    ha-card { padding: 16px; }
+
+    .chart-wrapper {
       position: relative;
       display: flex;
       justify-content: center;
       align-items: center;
-      margin: 0 auto;          /* ← Centrerar wrappern horisontellt */
-
+      margin: 0 auto;
     }
-      .sensor-label {
-        text-align: center;
-        margin-top: 8px;
-        color: var(--secondary-text-color);
-      }
-    `;
+
+    .sensor-label {
+      text-align: center;
+      margin-top: 8px;
+    }
+  `;
 }
+
 
 getCardSize() {
     return 3;
@@ -317,10 +304,10 @@ class SixdegreesCardEditor extends LitElement {
     }
 
     render() {
-          // Om det mot förmodan inte finns någon config ännu, visa ingenting
-  if (!this._config) {
-    return html``;
-  }
+        // Om det mot förmodan inte finns någon config ännu, visa ingenting
+        if (!this._config) {
+            return html``;
+        }
 
         // Säkerställ att colors är en array
         const colors = Array.isArray(this._config.colors) ? this._config.colors : [];
@@ -444,101 +431,101 @@ class SixdegreesCardEditor extends LitElement {
 
       <!-- Segment colors -->
       ${colors.map((col, i) => {
-        const hexMatch = /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(col) ? col : "#000000";
+          const hexMatch = /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(col) ? col : "#000000";
         return html`
-        <ha-formfield label="Segment color ${i+1}">
-          <div class="color-picker-row">
-            <input
+              <ha-formfield label="Segment color ${i+1}">
+              <div class="color-picker-row">
+              <input
               type="color"
               .value=${hexMatch}
               @input=${e => this._updateConfigColor(i, e.target.value)}
-            >
-            <ha-textfield
+              >
+              <ha-textfield
               .value=${col}
               placeholder="#rrggbb or var(--…)"
               @input=${e => this._updateConfigColor(i, e.target.value)}
-            ></ha-textfield>
-            <ha-icon-button
-              icon="mdi:refresh"
+              ></ha-textfield>
+              <ha-icon-button
               title="Reset to default"
               @click=${() => this._updateConfigColor(i, this._defaults.colors[i])}
-            ></ha-icon-button>
-          </div>
-        </ha-formfield>`;
+              >
+              <ha-icon icon="mdi:refresh"></ha-icon>
+              </ha-icon-button>
+              </div>
+              </ha-formfield>`;
       })}
 
       <!-- Empty segment color -->
-      <ha-formfield label="Empty segment color">
-        <div class="color-picker-row">
-          <input
-            type="color"
-            .value=${
-              /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(this._config.empty_color)
-                ? this._config.empty_color
-                : "#000000"
-            }
-            @input=${e => this._updateConfig('empty_color', e.target.value)}
-          >
-          <ha-textfield
-            .value=${this._config.empty_color}
-            placeholder="#rrggbb or var(--…)"
-            @input=${e => this._updateConfig('empty_color', e.target.value)}
-          ></ha-textfield>
-          <ha-icon-button
-            icon="mdi:refresh"
-            title="Reset to default"
-            @click=${() => this._updateConfig('empty_color', this._defaults.empty_color)}
-          ></ha-icon-button>
-        </div>
-      </ha-formfield>
+<ha-formfield label="Empty segment color">
+  <div class="color-picker-row">
+    <input
+      type="color"
+      .value=${/^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(this._config.empty_color)
+        ? this._config.empty_color
+        : "#000000"
+      }
+      @input=${e => this._updateConfig('empty_color', e.target.value)}
+    >
+    <ha-textfield
+      .value=${this._config.empty_color}
+      placeholder="#rrggbb or var(--…)"
+      @input=${e => this._updateConfig('empty_color', e.target.value)}
+    ></ha-textfield>
+    <ha-icon-button
+      title="Reset to default"
+      @click=${() => this._updateConfig('empty_color', this._defaults.empty_color)}
+    >
+      <ha-icon icon="mdi:refresh"></ha-icon>
+    </ha-icon-button>
+  </div>
+</ha-formfield>
 
-      <!-- Gap color -->
-      <ha-formfield label="Gap color">
-        <div class="color-picker-row">
-          <input
-            type="color"
-            .value=${
-              /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(this._config.gap_color)
-                ? this._config.gap_color
-                : "#000000"
-            }
-            @input=${e => this._updateConfig('gap_color', e.target.value)}
-          >
-          <ha-textfield
-            .value=${this._config.gap_color}
-            placeholder="#rrggbb or var(--…)"
-            @input=${e => this._updateConfig('gap_color', e.target.value)}
-          ></ha-textfield>
-          <ha-icon-button
-            icon="mdi:refresh"
-            title="Reset to default"
-            @click=${() => this._updateConfig('gap_color', this._defaults.gap_color)}
-          ></ha-icon-button>
-        </div>
-      </ha-formfield>
+<!-- --- Gap color --- -->
+<ha-formfield label="Gap color">
+  <div class="color-picker-row">
+    <input
+      type="color"
+      .value=${/^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(this._config.gap_color)
+        ? this._config.gap_color
+        : "#000000"
+      }
+      @input=${e => this._updateConfig('gap_color', e.target.value)}
+    >
+    <ha-textfield
+      .value=${this._config.gap_color}
+      placeholder="#rrggbb or var(--…)"
+      @input=${e => this._updateConfig('gap_color', e.target.value)}
+    ></ha-textfield>
+    <ha-icon-button
+      title="Reset to default"
+      @click=${() => this._updateConfig('gap_color', this._defaults.gap_color)}
+    >
+      <ha-icon icon="mdi:refresh"></ha-icon>
+    </ha-icon-button>
+  </div>
+</ha-formfield>
     </div>
   `;
-}
+      }
 
-  _updateConfig(prop, value) {
-      const cfg = { ...this._config, [prop]: value };
-      this._config = cfg;
-      this.dispatchEvent(new CustomEvent('config-changed', {
-          detail: { config: cfg },
-          bubbles: true,
-          composed: true,
-      }));
-  }
+          _updateConfig(prop, value) {
+              const cfg = { ...this._config, [prop]: value };
+              this._config = cfg;
+              this.dispatchEvent(new CustomEvent('config-changed', {
+                  detail: { config: cfg },
+                  bubbles: true,
+                  composed: true,
+              }));
+          }
 
-  _updateConfigColor(index, value) {
-      const cols = [...this._config.colors];
-      cols[index] = value;
-      this._updateConfig('colors', cols);
-  }
+          _updateConfigColor(index, value) {
+              const cols = [...this._config.colors];
+              cols[index] = value;
+              this._updateConfig('colors', cols);
+          }
 
-
-  static get styles() {
-  return css`
+          static get styles() {
+              return css`
     .card-config {
       display: flex;
       flex-direction: column;
@@ -566,27 +553,28 @@ class SixdegreesCardEditor extends LitElement {
       box-sizing: border-box;
     }
 
-    /* Sliders behåller sin flex-uppsättning: */
+    /* Sliders behåller sin flex-uppsättning */
     .slider-with-value {
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    /* Ge slidern flexibel bredd men en min-bredd så den syns */
     .slider-with-value ha-slider {
       flex: 1;
       min-width: 150px;
     }
-    /* Värde-etiketten */
     .slider-with-value span {
       width: 3em;
       text-align: center;
     }
+
+    /* Rad med färg-picker + textfält */
     .color-picker-row {
       display: flex;
       align-items: center;
       gap: 8px;
     }
+    /* native <input type="color"> */
     .color-picker-row input[type="color"] {
       border: none;
       width: 28px;
@@ -594,15 +582,26 @@ class SixdegreesCardEditor extends LitElement {
       padding: 0;
       background: none;
     }
+    /* textfältet får växa */
     .color-picker-row ha-textfield {
       flex: 1;
     }
+
+    .color-picker-row mwc-icon-button,
+    .color-picker-row ha-icon-button {
+      cursor: pointer;
+      --mdc-icon-button-ink-color: var(--primary-text-color);
+    }
+    .color-picker-row mwc-icon-button:hover,
+    .color-picker-row ha-icon-button:hover {
+      opacity: 0.8;
+  }
+
   `;
-}
+  }
 }
 
   customElements.define('sixdegrees-card-editor', SixdegreesCardEditor);
-
 
 
   // --- Visual editor-registrering ---
@@ -612,7 +611,7 @@ class SixdegreesCardEditor extends LitElement {
       name: 'Six Degrees Card',
       preview: true,
       description: 'Visualises a value 0–6 with a six-segment doughnut chart',
-      documentationURL: 'https://github.com/your-repo/sixdegrees-card'
+      documentationURL: 'https://github.com/krissen/sixdegrees-card'
   });
 
-  // vim: set ts=4 sw=4 et:
+// vim: set ts=4 sw=4 et:
