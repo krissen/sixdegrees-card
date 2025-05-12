@@ -2,65 +2,89 @@ import {
     LitElement,
     html,
     css
-    } from "https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js";
-  
-  class SixDegrees extends LitElement {
+} from "https://cdn.jsdelivr.net/gh/lit/dist@2/core/lit-core.min.js";
+
+class SixDegrees extends LitElement {
     static get properties() {
-      return {
-        hass: {},
-        config: {}
-      };
+        return {
+            hass: {},
+            config: {}
+        };
     }
-  
-      set hass(hass) {
-          this._hass = hass;
-          const entity = hass.states[this.config.entity];
-          const raw = Number(entity.state);
 
-          const min = this.config.min ?? 0;
-          const max = this.config.max ?? raw;
-          if (max <= min) {
-              throw new Error(`Invalid configuration: max (${max}) must be > min (${min}).`);
-          }
+    set hass(hass) {
+        this._hass = hass;
+        const entity = hass.states[this.config.entity];
+        const raw = Number(entity.state);
 
-          // clamp into [min…max]
-          const clamped = Math.min(Math.max(raw, min), max);
+        const min = this.config.min ?? 0;
+        const max = this.config.max ?? raw;
+        if (max <= min) {
+            throw new Error(`Invalid configuration: max (${max}) must be > min (${min}).`);
+        }
 
-          // compute degree 0–6
-          const span = max - min;
-          const ratio = (clamped - min) / span;
-          let degrees = Math.round(ratio * 6);
+        // clamp into [min…max]
+        const clamped = Math.min(Math.max(raw, min), max);
 
-          // just in case rounding pushes us out of bounds
-          degrees = Math.min(6, Math.max(0, degrees));
+        // compute degree 0–6
+        const span = max - min;
+        const ratio = (clamped - min) / span;
+        let degrees = Math.round(ratio * 6);
+        degrees = Math.min(6, Math.max(0, degrees));
 
-          // now assign back to your sensor object
-          const sensor = {
-              state: raw,         // keep the raw value for display
-              degrees,            // 0…6 after clamping & offset
-              // …then carry on with your name, header, etc.
-          };
+        // Beräkna sensorens display-namn
+        let name = '';
+        if (this.config.name === false) {
+            name = '';
+        } else if (this.config.name === true) {
+            name = entity.attributes.friendly_name;
+        } else if (typeof this.config.name === 'string') {
+            name = this.config.name;
+        }
 
-          this.sensor = sensor;
-      }
+        // Beräkna kortets titel (header)
+        if (this.config.title === false) {
+            this.header = '';
+        } else if (this.config.title === true) {
+            this.header = entity.attributes.friendly_name;
+        } else if (typeof this.config.title === 'string') {
+            this.header = this.config.title;
+        }
+
+        // Spara allt i sensor-objektet
+        this.sensor = {
+            state: raw,    // råvärdet
+            degrees,       // 0…6
+            name           // display-namn
+        };
+    }
 
 
     _renderMinimalHtml() {
-          return html`
-          <ha-card>
-              ${this.header ? html`<h1 class="card-header" style="padding-bottom: 0px;">${this.header}</h1>` : ''}
-              ${this.config.title == false ? html`
-              <p></p>
-              ` : ''}
-              <div class="flex-container">
-                  <div class="sensor">
-                  <img class="box" src="${this.images[this.sensor.degrees+'_png']}" />
-                      <p>${this.sensor.name}</p>
-                  </div>
-              </div>
-          </ha-card>
-      `;
+        return html`
+    <ha-card>
+      ${this.header
+              ? html`<h1 class="card-header" style="padding-bottom: 0px;">${this.header}</h1>`
+              : ''}
+      <div class="flex-container">
+        <div class="sensor">
+          <img class="box" src="${this.images[this.sensor.degrees + '_png']}" />
+          ${this.sensor.name
+                  ? html`<p class="sensor-name">${this.sensor.name}</p>`
+                  : ''}
+          ${this.config.show_value
+                  ? html`<p class="sensor-value">
+                ${this.sensor.name
+                        ? `(${this.sensor.state})`
+                        : this.sensor.state}
+              </p>`
+                  : ''}
+        </div>
+      </div>
+    </ha-card>
+  `;
     }
+
 
   
     render() {
