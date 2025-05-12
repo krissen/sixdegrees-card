@@ -200,3 +200,4 @@ class SixDegrees extends LitElement {
 
 customElements.define("sixdegrees-card", SixDegrees);
 
+// vim: set ts=4 sw=4 et:
