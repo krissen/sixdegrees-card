@@ -25,20 +25,34 @@ class SixDegrees extends LitElement {
 
     // --- Visual Editor support ---
     // Return the custom editor element for the visual editor
-    static async getConfigElement() {
-        // Se till att ha-entity-picker finns tillgänglig
-        if (!customElements.get('ha-entity-picker')) {
-            // Ladda in Lovelace-helpers
-            const helpers = await window.loadCardHelpers();
-            // Skapa en "entities"-kort-instans för att trigga inladdning av dess editor-element
-            const entCard = await helpers.createCardElement({ type: 'entities', entities: [] });
-            // Anropa dess getConfigElement för att ladda picker-komponenten
-            await entCard.constructor.getConfigElement();
-        }
-        // Vänta på att vår egen editor är definierad
-        await customElements.whenDefined('sixdegrees-card-editor');
-        return document.createElement('sixdegrees-card-editor');
-    }
+/**
+ * Return the custom editor element for the visual editor.
+ * Ser till att ha-entity-picker laddas in via ett dummy "entities"-kort,
+ * sedan returnerar vår editor.
+ */
+static async getConfigElement() {
+  // 1) Ladda in Lovelace-helpers
+  const helpers = await window.loadCardHelpers();
+
+  // 2) Skapa ett dummy-entities-kort för att få med ha-entity-picker
+  const entCard = await helpers.createCardElement({
+    type: 'entities',
+    entities: []
+  });
+  await entCard.constructor.getConfigElement();
+
+  // 3) Dynamiskt importera de komponenter som behövs för färgplockare och ikon-knapp
+  // if (!customElements.get('ha-color-picker')) {
+  //   await import('/frontend_latest/components/ha-color-picker.js?module');
+  // }
+  if (!customElements.get('ha-icon-button')) {
+    await import('/frontend_latest/components/ha-icon-button.js?module');
+  }
+
+  // 4) Vänta på och returnera vår egen editor
+  await customElements.whenDefined('sixdegrees-card-editor');
+  return document.createElement('sixdegrees-card-editor');
+}
 
 
     // Provide a stub/default configuration for the editor
@@ -256,13 +270,13 @@ static get styles() {
         color: var(--primary-text-color);
       }
       .chart-wrapper {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-        margin: 0 auto;          /* ← Centrerar wrappern horisontellt */
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 0 auto;          /* ← Centrerar wrappern horisontellt */
 
-}
+    }
       .sensor-label {
         text-align: center;
         margin-top: 8px;
@@ -290,6 +304,7 @@ class SixdegreesCardEditor extends LitElement {
         super();
         // Starta med stub‐config som getStubConfig()
         this._config = SixDegrees.getStubConfig();
+        this._defaults = SixDegrees.getStubConfig();
     }
 
     setConfig(config) {
@@ -302,17 +317,25 @@ class SixdegreesCardEditor extends LitElement {
     }
 
     render() {
+          // Om det mot förmodan inte finns någon config ännu, visa ingenting
+  if (!this._config) {
+    return html``;
+  }
+
+        // Säkerställ att colors är en array
+        const colors = Array.isArray(this._config.colors) ? this._config.colors : [];
+
         return html`
     <div class="card-config">
       <!-- Entity -->
       <ha-formfield label="Entity">
-  <ha-entity-picker
-    allow-custom-entity
-    .hass=${this._hass}
-    .value=${this._config.entity}
-    @value-changed=${e => this._updateConfig('entity', e.detail.value)}
-  ></ha-entity-picker>
-</ha-formfield>
+      <ha-entity-picker
+        allow-custom-entity
+        .hass=${this._hass}
+        .value=${this._config.entity}
+        @value-changed=${e => this._updateConfig('entity', e.detail.value)}
+      ></ha-entity-picker>
+      </ha-formfield>
 
 
 
@@ -338,7 +361,7 @@ class SixdegreesCardEditor extends LitElement {
         ></ha-textfield>
       </ha-formfield>
 
-            <!-- Size (px) -->
+      <!-- Size (px) -->
       <ha-formfield label="Size (px)">
         <ha-textfield
           type="number"
@@ -420,55 +443,101 @@ class SixdegreesCardEditor extends LitElement {
       </ha-formfield>
 
       <!-- Segment colors -->
-      ${this._config.colors.map((col, i) => html`
+      ${colors.map((col, i) => {
+        const hexMatch = /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(col) ? col : "#000000";
+        return html`
         <ha-formfield label="Segment color ${i+1}">
-          <ha-textfield
-            .value=${col}
-            placeholder="#rrggbb or var(--…)"
-            @input=${e => this._updateConfigColor(i, e.target.value)}
-          ></ha-textfield>
-        </ha-formfield>
-      `)}
+          <div class="color-picker-row">
+            <input
+              type="color"
+              .value=${hexMatch}
+              @input=${e => this._updateConfigColor(i, e.target.value)}
+            >
+            <ha-textfield
+              .value=${col}
+              placeholder="#rrggbb or var(--…)"
+              @input=${e => this._updateConfigColor(i, e.target.value)}
+            ></ha-textfield>
+            <ha-icon-button
+              icon="mdi:refresh"
+              title="Reset to default"
+              @click=${() => this._updateConfigColor(i, this._defaults.colors[i])}
+            ></ha-icon-button>
+          </div>
+        </ha-formfield>`;
+      })}
 
       <!-- Empty segment color -->
       <ha-formfield label="Empty segment color">
-        <ha-textfield
-          .value=${this._config.empty_color}
-          @input=${e => this._updateConfig('empty_color', e.target.value)}
-        ></ha-textfield>
+        <div class="color-picker-row">
+          <input
+            type="color"
+            .value=${
+              /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(this._config.empty_color)
+                ? this._config.empty_color
+                : "#000000"
+            }
+            @input=${e => this._updateConfig('empty_color', e.target.value)}
+          >
+          <ha-textfield
+            .value=${this._config.empty_color}
+            placeholder="#rrggbb or var(--…)"
+            @input=${e => this._updateConfig('empty_color', e.target.value)}
+          ></ha-textfield>
+          <ha-icon-button
+            icon="mdi:refresh"
+            title="Reset to default"
+            @click=${() => this._updateConfig('empty_color', this._defaults.empty_color)}
+          ></ha-icon-button>
+        </div>
       </ha-formfield>
 
       <!-- Gap color -->
       <ha-formfield label="Gap color">
-        <ha-textfield
-          .value=${this._config.gap_color}
-          @input=${e => this._updateConfig('gap_color', e.target.value)}
-        ></ha-textfield>
+        <div class="color-picker-row">
+          <input
+            type="color"
+            .value=${
+              /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(this._config.gap_color)
+                ? this._config.gap_color
+                : "#000000"
+            }
+            @input=${e => this._updateConfig('gap_color', e.target.value)}
+          >
+          <ha-textfield
+            .value=${this._config.gap_color}
+            placeholder="#rrggbb or var(--…)"
+            @input=${e => this._updateConfig('gap_color', e.target.value)}
+          ></ha-textfield>
+          <ha-icon-button
+            icon="mdi:refresh"
+            title="Reset to default"
+            @click=${() => this._updateConfig('gap_color', this._defaults.gap_color)}
+          ></ha-icon-button>
+        </div>
       </ha-formfield>
     </div>
   `;
-          }
+}
+
+  _updateConfig(prop, value) {
+      const cfg = { ...this._config, [prop]: value };
+      this._config = cfg;
+      this.dispatchEvent(new CustomEvent('config-changed', {
+          detail: { config: cfg },
+          bubbles: true,
+          composed: true,
+      }));
+  }
+
+  _updateConfigColor(index, value) {
+      const cols = [...this._config.colors];
+      cols[index] = value;
+      this._updateConfig('colors', cols);
+  }
 
 
-
-              _updateConfig(prop, value) {
-                  const cfg = { ...this._config, [prop]: value };
-                  this._config = cfg;
-                  this.dispatchEvent(new CustomEvent('config-changed', {
-                      detail: { config: cfg },
-                      bubbles: true,
-                      composed: true,
-                  }));
-              }
-
-              _updateConfigColor(index, value) {
-                  const cols = [...this._config.colors];
-                  cols[index] = value;
-                  this._updateConfig('colors', cols);
-              }
-
-
-              static get styles() {
+  static get styles() {
   return css`
     .card-config {
       display: flex;
@@ -513,28 +582,37 @@ class SixdegreesCardEditor extends LitElement {
       width: 3em;
       text-align: center;
     }
+    .color-picker-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .color-picker-row input[type="color"] {
+      border: none;
+      width: 28px;
+      height: 28px;
+      padding: 0;
+      background: none;
+    }
+    .color-picker-row ha-textfield {
+      flex: 1;
+    }
   `;
 }
+}
 
-
-          }
-
-              customElements.define('sixdegrees-card-editor', SixdegreesCardEditor);
-
-
-
-              // --- Visual editor-registrering ---
-              window.customCards = window.customCards || [];
-              window.customCards.push({
-                  type: 'sixdegrees-card',
-                  name: 'Six Degrees Card',
-                  preview: true,
-                  description: 'Visualises a value 0–6 with a six-segment doughnut chart',
-                  documentationURL: 'https://github.com/your-repo/sixdegrees-card'
-              });
+  customElements.define('sixdegrees-card-editor', SixdegreesCardEditor);
 
 
 
+  // --- Visual editor-registrering ---
+  window.customCards = window.customCards || [];
+  window.customCards.push({
+      type: 'sixdegrees-card',
+      name: 'Six Degrees Card',
+      preview: true,
+      description: 'Visualises a value 0–6 with a six-segment doughnut chart',
+      documentationURL: 'https://github.com/your-repo/sixdegrees-card'
+  });
 
-
-              // vim: set ts=4 sw=4 et:
+  // vim: set ts=4 sw=4 et:
