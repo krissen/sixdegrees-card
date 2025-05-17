@@ -77,7 +77,8 @@ class SixDegrees extends LitElement {
             gap_color:   "var(--card-background-color)",
 
             // Diameter i pixlar
-            size:        100
+            size:        100,
+            decimals: 0
         };
     }
 
@@ -108,7 +109,8 @@ class SixDegrees extends LitElement {
             empty_color: config.empty_color ?? "var(--divider-color)",
             gap: config.gap ?? 5,
             thickness: config.thickness ?? 60,
-            size: config.size ?? 100
+            size: config.size ?? 100,
+            decimals: config.decimals ?? 0
         };
     }
 
@@ -145,7 +147,14 @@ class SixDegrees extends LitElement {
             name = this.config.name;
         }
         if (this.config.show_value) {
-            name += name ? ` (${entity.state})` : `${entity.state}`;
+            const num = Number(entity.state);
+            // Om state är ett giltigt tal: formatera med rätt antal decimaler
+            const txt = !isNaN(num)
+                ? num.toFixed(this.config.decimals)
+                : entity.state;
+            name += name
+                ? ` (${txt})`
+                : txt;
         }
 
         let titleText = '';
@@ -404,6 +413,18 @@ class SixdegreesCardEditor extends LitElement {
           @change=${e => this._updateConfig('show_value', e.target.checked)}
         ></ha-switch>
       </ha-formfield>
+      <!-- Decimal places (0–5) -->
+
+    <ha-formfield label="Decimal places">
+      <div class="slider-with-value">
+        <ha-slider
+          min="0" max="5" step="1"
+          .value=${this._config.decimals}
+          @input=${e => this._updateConfig('decimals', Number(e.target.value))}
+        ></ha-slider>
+        <span>${this._config.decimals}</span>
+      </div>
+    </ha-formfield>
 
       <!-- Thickness (%) -->
       <ha-formfield label="Thickness (%)">
